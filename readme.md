@@ -1,6 +1,6 @@
 # Varea Energy Hydrogen Map
 
-index.html file contains code ready for embedding into Squarespace page. Note that this is not valid stand-alone HTML
+squarespace.html file contains code ready for embedding into Squarespace page. Note that this is not valid stand-alone HTML
 
 ### Configuration
 
