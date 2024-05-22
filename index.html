@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Display a globe on a webpage</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.11.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.11.0/mapbox-gl.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoiYW5uYWRhaTEiLCJhIjoiY2x3Y2VraXM3MHkzbTJxbXlxOHRmY3VzeCJ9.tu-4Msj5BYX0vHjh6P95oQ';
+        const map = new mapboxgl.Map({
+            container: 'map',
+            // Choose from Mapbox's core styles, or make your own style with Mapbox Studio
+            style: 'mapbox://styles/mapbox/satellite-streets-v11',
+            zoom: 1.5,
+            center: [30, 50],
+            projection: 'globe'
+        });
+
+        map.on('load', () => {
+            // Set the default atmosphere style
+            map.setFog({});
+
+            d3.csv
+                ("https://docs.google.com/spreadsheets/d/e/2PACX-1vSWsI7Ag7D6VVzbOuCwNokwqlecdX9vp5Au3cyJ55wsCdQyKQv5AeWcWhrIsR3k-BldBsnDLxU4foJ3/pub?output=csv")
+                .then(function (data) {
+                    console.log(data);
+                    data.forEach(function (d) {
+                        console.log(d);
+                        new mapboxgl.Marker()
+                            .setLngLat([d.Longitude, d.Latitude])
+                            .addTo(map);
+                    });
+                });
+        });
+    </script>
+
+</body>
+
+</html>
