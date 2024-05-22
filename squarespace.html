@@ -34,14 +34,17 @@
         border-radius: 5px;
         box-shadow: 0 0 10px rgba(0,0,0,0.2);
         z-index: 1;
+        opacity: 0.6;
     }
     .legend h3 {
         margin-top: 0;
+        font-size: 16px;
     }
     .legend div {
         display: flex;
         align-items: center;
         margin-bottom: 5px;
+        font-size: 12px;
     }
     .legend div span {
         display: inline-block;
@@ -49,20 +52,20 @@
         height: 20px;
         margin-right: 10px;
     }
-    .segment1 {
+    .legend-segment {
         border: 1px #000 solid;
+        opacity: 1;
+    }
+    .segment1 {
         background-color: yellow; /* Color for Segment 1 */
     }
     .segment2 {
-        border: 1px #000 solid;
         background-color: white; /* Color for Segment 2 */
     }
     .segment3 {
-        border: 1px #000 solid;
         background-color: red; /* Color for Segment 3 */
     }
     .segment4 {
-        border: 1px #000 solid;
         background-color: black; /* Color for Segment 3 */
     }
 </style>
@@ -76,19 +79,19 @@
     <div class="legend">
         <h3>Map Legend</h3>
         <div>
-            <span class="segment1"></span>
+            <span class="legend-segment segment1"></span>
             <p>Hydrogen Type: Redox Reaction</p>
         </div>
         <div>
-            <span class="segment2"></span>
+            <span class="legend-segment segment2"></span>
             <p>Hydrogen Type: Organic Maturation</p>
         </div>
         <div>
-            <span class="segment3"></span>
+            <span class="legend-segment segment3"></span>
             <p>Hydrogen Type: Radiolysis</p>
         </div>
         <div>
-            <span class="segment4"></span>
+            <span class="legend-segment segment4"></span>
             <p>Hydrogen Type: Unknown</p>
         </div>
     </div>
