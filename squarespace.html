@@ -25,6 +25,46 @@
     .h2-site-row span{
         font-weight: bold;
     }
+    .legend {
+        position: absolute;
+        bottom: 30px;
+        left: 10px;
+        background: white;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        z-index: 1;
+    }
+    .legend h3 {
+        margin-top: 0;
+    }
+    .legend div {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+    }
+    .legend div span {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        margin-right: 10px;
+    }
+    .segment1 {
+        border: 1px #000 solid;
+        background-color: yellow; /* Color for Segment 1 */
+    }
+    .segment2 {
+        border: 1px #000 solid;
+        background-color: white; /* Color for Segment 2 */
+    }
+    .segment3 {
+        border: 1px #000 solid;
+        background-color: red; /* Color for Segment 3 */
+    }
+    .segment4 {
+        border: 1px #000 solid;
+        background-color: black; /* Color for Segment 3 */
+    }
 </style>
 <div id="map-wrapper">
     <div id="map_h2"></div>
@@ -32,6 +72,25 @@
         <select id="h2-filter-type">
             <option value="all">All</option>
         </select>
+    </div>
+    <div class="legend">
+        <h3>Map Legend</h3>
+        <div>
+            <span class="segment1"></span>
+            <p>Hydrogen Type: Redox Reaction</p>
+        </div>
+        <div>
+            <span class="segment2"></span>
+            <p>Hydrogen Type: Organic Maturation</p>
+        </div>
+        <div>
+            <span class="segment3"></span>
+            <p>Hydrogen Type: Radiolysis</p>
+        </div>
+        <div>
+            <span class="segment4"></span>
+            <p>Hydrogen Type: Unknown</p>
+        </div>
     </div>
 </div>
 
@@ -158,6 +217,22 @@
             }
         });
 
+        map.addLayer({
+            'id': 'h2-site-labels',
+            'type': 'symbol',
+            'source': 'h2-basic',
+            'layout': {
+                'text-field': ['get', 'Location_Name'],
+                'text-size': 13,
+                'text-offset': [0, 2]
+            },
+            'paint': {
+                'text-color': '#fff',
+                'text-halo-color': 'navy',
+                'text-halo-width': 1
+            }
+        });
+
         map.on('mouseenter', 'h2-site', (e) => {
             map.getCanvas().style.cursor = 'pointer';
         });
@@ -184,8 +259,10 @@
 
             if (h2Type === 'all') {
                 map.setFilter('h2-site', null);
+                map.setFilter('h2-site-labels', null);
             } else {
                 map.setFilter('h2-site', ["==", ['get', 'Hydrogen_Type'], h2Type])
+                map.setFilter('h2-site-labels', ["==", ['get', 'Hydrogen_Type'], h2Type])
             }
         });
 
