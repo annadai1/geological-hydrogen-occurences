@@ -1,1 +1,193 @@
-Test just test
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<style>
+    #map-wrapper{
+        width: 100%;
+        height: 800px;
+        position: relative;
+    }
+    #map_h2{
+        height: 100%;
+        width: 100%;
+    }
+    .filter-dropdown{
+        position: absolute;
+        left: 15px;
+        top: 15px;
+        font-family: Arial,serif;
+    }
+    .h2-site-row{
+        padding: 4px 0;
+        border-bottom: 1px #ccc solid;
+    }
+    .h2-site-row span{
+        font-weight: bold;
+    }
+</style>
+<div id="map-wrapper">
+    <div id="map_h2"></div>
+    <div class="filter-dropdown">
+        <select id="h2-filter-type">
+            <option value="all">All</option>
+        </select>
+    </div>
+</div>
+
+<script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoiYW5uYWRhaTEiLCJhIjoiY2x3Y2VraXM3MHkzbTJxbXlxOHRmY3VzeCJ9.tu-4Msj5BYX0vHjh6P95oQ';
+    const map = new mapboxgl.Map({
+        container: 'map_h2',
+        style: 'mapbox://styles/annadai1/clwf3bmip008c01pcfvn59o6c',
+        center: [-95.7129, 37.0902],
+        zoom: 2
+    });
+    map.addControl(new mapboxgl.NavigationControl());
+
+    let sitePopup = null;
+
+    function updateData(data) {
+
+        let hydrogenTypes = [];
+
+        let sourceFC = {
+            "type": "FeatureCollection",
+            "crs": {"type": "name", "properties": {"name": "urn:ogc:def:crs:OGC:1.3:CRS84"}},
+            "features": []
+        }
+
+        let csv = Papa.parse(data, {header: true});
+        for (let i in csv.data) {
+            let lng, lat;
+            let prop = {};
+            for (let j in csv.data[i]) {
+                if (csv.data[i][j].trim() !== "") {
+                    if (j.trim() === "Latitude") {
+                        lat = parseFloat(csv.data[i][j])
+                    } else if (j.trim() === "Longitude") {
+                        lng = parseFloat(csv.data[i][j]);
+                    } else {
+                        prop[j.trim()] = csv.data[i][j].trim();
+                    }
+                }
+            }
+            if (lng !== undefined && lat !== undefined) {
+                sourceFC["features"].push({
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': [lng, lat]
+                    },
+                    'properties': prop
+                });
+                if (prop["Hydrogen_Type"] !== undefined) {
+                    if (hydrogenTypes.indexOf(prop["Hydrogen_Type"]) === -1){
+                        hydrogenTypes.push(prop["Hydrogen_Type"]);
+                    }
+                }
+            }
+        }
+
+        let htOptions = '<option value="all">All</option>';
+        for (let ht of hydrogenTypes) {
+            htOptions += `<option value="${ht}">${ht}</option>`;
+        }
+        jQuery("#h2-filter-type").html(htOptions);
+
+        map.getSource("h2-basic").setData(sourceFC);
+    }
+
+    function siteClick(e) {
+        let props = e.features[0].properties;
+
+        map.flyTo({center: e.lngLat, duration: 700});
+
+        openSitePopup(props, e.lngLat);
+    }
+
+    function openSitePopup(props, lngLat) {
+        if (sitePopup !== null) {
+            sitePopup.remove();
+        }
+
+        sitePopup = new mapboxgl.Popup()
+            .setLngLat(lngLat)
+            .setHTML(makePopupHTML(props))
+            .addTo(map);
+    }
+
+    function makePopupHTML(props) {
+
+        let html='<div class="h2-site-popup">';
+        for (let i in props) {
+            html += `<div class="h2-site-row">${i}: <span>${props[i]}</span></div>`;
+        }
+        html += '</div>';
+
+        return html
+    }
+
+    map.on('load', () => {
+
+        map.addSource('h2-basic', {
+            'type': 'geojson',
+            'data': null
+        });
+
+        map.addLayer({
+            'id': 'h2-site',
+            'type': 'circle',
+            'source': 'h2-basic',
+            'layout': {},
+            'paint': {
+                'circle-radius': 8,
+                'circle-color': 'lightblue',
+                'circle-stroke-width': 2,
+                'circle-stroke-color': [
+                    'match',
+                    ['get', 'Hydrogen_Type'],
+                    'Redox Reaction',
+                    'yellow',
+                    'Organic Maturation',
+                    'white',
+                    'Radiolysis',
+                    'red',
+                    'black'
+                ]
+            }
+        });
+
+        map.on('mouseenter', 'h2-site', (e) => {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+
+        map.on('mouseleave', 'h2-site', () => {
+            map.getCanvas().style.cursor = '';
+        });
+        map.on('click', 'h2-site', siteClick);
+
+        jQuery.ajax({
+            url: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRpDCyLzqH4c3x98GsYq8ydxE78aPhmUEffxbkpyXvVWa7k6sBEyX8q98oxFrKxFRzXigv3ULP7UWXS/pub?gid=943834720&single=true&output=csv',
+            dataType: 'text',
+        }).done(function (data) {
+            updateData(data);
+        });
+
+        jQuery(document).on('change', '#h2-filter-type', function(e){
+
+            if (sitePopup !== null) {
+                sitePopup.remove();
+            }
+
+            let h2Type = jQuery('#h2-filter-type option:selected').val();
+
+            if (h2Type === 'all') {
+                map.setFilter('h2-site', null);
+            } else {
+                map.setFilter('h2-site', ["==", ['get', 'Hydrogen_Type'], h2Type])
+            }
+        });
+
+    })
+</script>
